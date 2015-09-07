@@ -1,10 +1,8 @@
 startValue = robot.encoders.LatestMessage.Left;
 travelDistance = 200;
 currentDistance = robot.encoders.LatestMessage.Left;
-
 Time = [];
 Distance = [];
-
 figure(1);
 tic;
 while(currentDistance - startValue < travelDistance)
@@ -13,26 +11,24 @@ while(currentDistance - startValue < travelDistance)
     distance = currentDistance - startValue;
     Distance = [Distance distance];
     Time = [Time time];
-        
+    robot.sendVelocity(0.05,0.05);
+    plot(Time,Distance),xlabel('Time (s)'),ylabel('Distance (cm)') ,title('Distance vs Time Graph');
     pause(0.005);
     currentDistance = robot.encoders.LatestMessage.Left;
-    robot.sendVelocity(0.05,0.05);
-    plot(Time,Distance/10),xlabel('Time (s)'),ylabel('Distance (cm)') ,title('Distance vs Time Graph');
 end
 robot.sendVelocity(0.0,0.0);
 pause(2);
 fprintf('Moved forward.')
-travelDistance = 200;
 newStart = robot.encoders.LatestMessage.Left;
 currentDistance = robot.encoders.LatestMessage.Left;
 while(newStart - currentDistance < travelDistance)
     toc;
     time = toc;
+    plot(Time,Distance),xlabel('Time (s)'),ylabel('Distance (cm)') ,title('Distance vs Time Graph');
+    pause(0.005);
     distance = currentDistance - startValue;
     Distance = [Distance distance];
     Time = [Time time];
-    plot(Time,Distance/10),xlabel('Time (s)'),ylabel('Distance (cm)') ,title('Distance vs Time Graph');
-    pause(0.005);
     currentDistance = robot.encoders.LatestMessage.Left;
     robot.sendVelocity(-0.05,-0.05);
 end
