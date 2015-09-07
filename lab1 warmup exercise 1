@@ -1,23 +1,23 @@
-tic
-endTime =0
-while(endTime < 4)
-    pause(0.005)
-    toc
-    endTime = toc
-    robot.sendVelocity(0.05,0.05)
+startValue = robot.encoders.LatestMessage.Left;
+travelDistance = 100;
+currentDistance = robot.encoders.LatestMessage.Left;
+while(currentDistance - startValue < travelDistance)
+    pause(0.005);
+    currentDistance = robot.encoders.LatestMessage.Left;
+    robot.sendVelocity(0.05,0.05);
 end
-robot.sendVelocity(0.0,0.0)
-tic
-newTime = 0
-while(newTime<4)
-    pause(0.005)
-    toc
-    newTime = toc
-    robot.sendVelocity(-0.05,-0.05)
+robot.sendVelocity(0.0,0.0);
+pause(2);
+fprintf('Moved forward.')
+
+
+startValue = robot.encoders.LatestMessage.Left;
+travelDistance = 100;
+currentDistance = robot.encoders.LatestMessage.Left;
+while(startValue - currentDistance < travelDistance)
+    pause(0.005);
+    currentDistance = robot.encoders.LatestMessage.Left;
+    robot.sendVelocity(-0.05,-0.05);
 end
-robot.sendVelocity(0,0)
-
-
-
-
-%test
+robot.sendVelocity(0,0);
+fprintf('Moved backward.')
