@@ -1,0 +1,19 @@
+startValue = robot.encoders.LatestMessage.Left
+travelDistance = 200
+currentDistance = robot.encoders.LatestMessage.Left
+while(currentDistance - startValue < travelDistance)
+    pause(0.005)
+    currentDistance = robot.encoders.LatestMessage.Left
+    robot.sendVelocity(0.05,0.05)
+end
+robot.sendVelocity(0.0,0.0)
+pause(2)
+startValue = robot.encoders.LatestMessage.Left
+travelDistance = 200
+currentDistance = robot.encoders.LatestMessage.Left
+while(startValue - currentDistance > travelDistance)
+    pause(0.005)
+    currentDistance = robot.encoders.LatestMessage.Left
+    robot.sendVelocity(-0.05,-0.05)
+end
+robot.sendVelocity(0,0)
