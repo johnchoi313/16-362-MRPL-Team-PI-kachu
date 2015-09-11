@@ -1,0 +1,12 @@
+% Carter Sharer Lab 2
+function [ x y th] = irToXy(i, r)
+% irToXy finds position and bearing of a range pixel endpoint
+% Finds the position and bearing of the endpoint of a range pixel in
+% the plane.
+
+%Subtract 1 from i due to indexing at 1
+x = r*cosd(i-1);
+y = r*sind(i-1);
+th = deg2rad(i-1);
+
+end
