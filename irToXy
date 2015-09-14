@@ -1,0 +1,13 @@
+function [ x y th ] = irToXy(i, r)
+
+x = r*cosd(i-1);
+y = r*sind(i-1);
+
+theta = deg2rad(i-1);
+if (theta > pi)
+    theta = theta - 2*pi
+end
+th = theta
+
+end
+
