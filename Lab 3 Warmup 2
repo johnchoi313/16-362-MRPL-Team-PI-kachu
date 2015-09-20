@@ -1,0 +1,33 @@
+startDistance = robot.encoders.LatestMessage.Left;
+tic;
+toc;
+startTime = toc;
+% startTime = robot.encoders.LatestMessage.Header.Stamp.Sec + ...
+ %   (robot.encoders.LatestMessage.Header.Stamp.Nsec / 1000000000.0);
+timeArray = []
+velocityArray = []
+myPlot = plot(timeArray, velocityArray, 'b-');
+xlim([0.0 3]);
+ylim([-.25 .25]);
+for i = 1:20
+    toc;
+    newDistance = robot.encoders.LatestMessage.Left;
+    newStart = toc;
+    %newStart = robot.encoders.LatestMessage.Header.Stamp.Sec + ...
+    %(robot.encoders.LatestMessage.Header.Stamp.Nsec / 1000000000.0);
+    robot.sendVelocity(0.15,0.15);
+    toc;
+    endDistance = robot.encoders.LatestMessage.Left;
+    endTime = toc;
+    %endTime = robot.encoders.LatestMessage.Header.Stamp.Sec + ...
+    % (robot.encoders.LatestMessage.Header.Stamp.Nsec / 1000000000.0);
+    ds = endDistance - newDistance;
+    dt = endTime - newTime;
+    velocity = (ds)/(dt);
+    totalTime = endTime - startTime;
+    pause(0.005);
+    timeArray = [timeArray totalTime];
+    velocityArray = [velocityArray velocity];
+    set(myPlot, 'xdata', [get(myPlot,'xdata') x], ...
+                'ydata', [get(myPlot,'ydata') y]);
+end
