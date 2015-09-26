@@ -1,0 +1,61 @@
+%% target distance in mm.
+targetDistance = 100.0;
+%% initial start point
+startDistance = robot.encoders.LatestMessage.Left;
+prevDistance = startDistance;
+%% current distance
+currentDistance = 0.0;
+%% max velocity
+maxVelocity = 0.3;
+%% proportional, derivative, and integral constants
+k_p = 0.003;
+k_d = 0.00005;
+k_i = 0.0;
+%% initialize time variables
+currentTime = 0;
+lastTime = currentTime;
+tic;
+%% initialize error variables
+error = (targetDistance - currentDistance)
+lastError = error;
+errorDerivative = 0;
+errorIntegral = 0;
+u_t = 0.0;
+%Plotting
+TIME = [];
+ERROR = [];
+
+%% keep going until within 0.1 mm of target or 6 seconds pass
+while(currentTime < 6) & (abs(error) > 0.1)
+    %% update distance vars
+    currentDistance = robot.encoders.LatestMessage.Left - startDistance;
+    
+    %% update time vars
+    currentTime = toc;
+    dt = double(currentTime - lastTime);
+    %% update error vars
+    error = double(targetDistance - currentDistance);
+    errorDerivative = double((error - lastError)/ dt);
+    errorIntegral = double(error*dt);
+    
+    %% calculate velocity to send to robot
+    u_t = k_p*error + k_d*(errorDerivative) + k_i*(errorIntegral)
+    if (u_t > maxVelocity) 
+        u_t = maxVelocity; 
+    end
+    if (u_t < -maxVelocity) 
+        u_t = -maxVelocity; 
+    end
+    robot.sendVelocity(u_t,u_t);
+    
+    %% Update time vs error graph
+    figure(1);
+    TIME = [TIME currentTime];
+    ERROR = [ERROR error];
+    plot(TIME, ERROR), title('Time vs Error'), xlabel('Time (seconds)'), ylabel('Error');
+    pause(.01);
+    
+    %% get the time and error to be passed on to the next
+    lastError = error;
+    lastTime = currentTime;
+end
