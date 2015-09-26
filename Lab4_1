@@ -8,8 +8,8 @@ currentDistance = 0.0;
 %% max velocity
 maxVelocity = 0.3;
 %% proportional, derivative, and integral constants
-k_p = 6.0;
-k_d = 0.0;
+k_p = 0.003;
+k_d = 0.00005;
 k_i = 0.0;
 %% initialize time variables
 currentTime = 0;
@@ -20,7 +20,7 @@ error = (targetDistance - currentDistance)
 lastError = error;
 errorDerivative = 0;
 errorIntegral = 0;
-u_t = 0;
+u_t = 0.0;
 %Plotting
 TIME = [];
 ERROR = [];
@@ -34,9 +34,9 @@ while(currentTime < 6) & (abs(error) > 0.1)
     currentTime = toc;
     dt = double(currentTime - lastTime);
     %% update error vars
-    error = (targetDistance - currentDistance);
-    errorDerivative = (error - lastError)/ dt;
-    errorIntegral = error*dt;
+    error = double(targetDistance - currentDistance);
+    errorDerivative = double((error - lastError)/ dt);
+    errorIntegral = double(error*dt);
     
     %% calculate velocity to send to robot
     u_t = k_p*error + k_d*(errorDerivative) + k_i*(errorIntegral)
