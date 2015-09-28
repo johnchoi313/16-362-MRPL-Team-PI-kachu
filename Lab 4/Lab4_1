@@ -1,5 +1,5 @@
 %% target distance in mm.
-targetDistance = 100.0;
+targetDistance = 1000.0;
 %% initial start point
 startDistance = robot.encoders.LatestMessage.Left;
 prevDistance = startDistance;
@@ -25,8 +25,13 @@ u_t = 0.0;
 TIME = [];
 ERROR = [];
 
+%% setting feedforward variables
+a_max = 3.0 * 0.25;
+v_max = 0.25;
+%% distance in mm.
+
 %% keep going until within 0.1 mm of target or 6 seconds pass
-while(currentTime < 6) & (abs(error) > 0.1)
+while(currentTime < 12) & (abs(error) > 0.1)
     %% update distance vars
     currentDistance = robot.encoders.LatestMessage.Left - startDistance;
     
@@ -38,15 +43,29 @@ while(currentTime < 6) & (abs(error) > 0.1)
     errorDerivative = double((error - lastError)/ dt);
     errorIntegral = double(error*dt);
     
-    %% calculate velocity to send to robot
-    u_t = k_p*error + k_d*(errorDerivative) + k_i*(errorIntegral)
+    %% calculate feedforward velocity to send to robot
+    if (error < 0)
+        sgn = -1;
+    else
+        sgn = 1;
+    end
+    u_ref = 0.5*trapezoidalVelocityProfile(currentTime,a_max,v_max,targetDistance,sgn)
+    if (u_ref > maxVelocity) 
+        u_ref = maxVelocity; 
+    end
+    if (u_ref < -maxVelocity) 
+        u_ref = -maxVelocity; 
+    end
+    
+    %% calculate feedback velocity to send to robot
+    u_t = k_p*error + k_d*(errorDerivative) + k_i*(errorIntegral);
     if (u_t > maxVelocity) 
         u_t = maxVelocity; 
     end
     if (u_t < -maxVelocity) 
         u_t = -maxVelocity; 
     end
-    robot.sendVelocity(u_t,u_t);
+    robot.sendVelocity(u_ref,u_ref);
     
     %% Update time vs error graph
     figure(1);
