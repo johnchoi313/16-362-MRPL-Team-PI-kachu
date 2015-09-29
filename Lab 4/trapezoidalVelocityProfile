@@ -7,18 +7,29 @@ function [ uref ] = trapezoidalVelocityProfile(t,a_max,v_max,dist,sgn )
 
 %% set vars to calculate uref 
 t_ramp = v_max/a_max;
-t_f = t + 2* t_ramp;
-s_f = v_max*(t_f - t_ramp);
-t_f = (s_f + (v_max)^2 / (a_max)^2 )/v_max;
+
+%t_f = 6; %t + 2 * t_ramp;
+s_f = dist * 0.001; %dist; %v_max*(t_f - t_ramp);
+t_f = (s_f + ((v_max)^2 / (a_max)))/v_max;
+t_f
 
 %% set uref based on t vars
+t
 if (t < t_ramp)
+    %Ramp Up
     uref = a_max*t; 
-elseif(t_f - t < t_ramp)
-    uref = -a_max * (t_f - t)   
-elseif( (t_ramp < t) & (t < t_f - t_ramp))
+    fprintf('RampUp\n')
+elseif( (t_ramp < t) && (t < t_f - t_ramp))
+    %Const Velocity
     uref = v_max;
+    fprintf('constVelocity\n')
+elseif((t_f - t_ramp < t) && (t < t_f))
+    %Ramp Down
+    uref = a_max * (t_f - t)
+    fprintf('RampDown\n')
 else
+    %Stop
+    fprintf('Stop\n')
     uref = 0;
 end
 uref = uref * sgn;
