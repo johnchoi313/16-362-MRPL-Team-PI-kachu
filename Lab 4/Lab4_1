@@ -5,12 +5,10 @@ startDistance = robot.encoders.LatestMessage.Left;
 prevDistance = startDistance;
 %% current distance
 currentDistance = 0.0;
-%% max velocity
-maxVelocity = 0.3;
 %% proportional, derivative, and integral constants
-k_p = 0.003;
-k_d = 0.00005;
-k_i = 0.0;
+k_p = 0.001;
+k_d = 0.0000;
+k_i = 0.000;
 %% initialize time variables
 currentTime = 0;
 lastTime = currentTime;
@@ -21,17 +19,28 @@ lastError = error;
 errorDerivative = 0;
 errorIntegral = 0;
 u_t = 0.0;
-%Plotting
+%% Plotting
 TIME = [];
 ERROR = [];
+SIM = [];
+REAL = [];
+simX = 0;
+simOffset = 0;
+%% use feedback?
+useFeedback = 1;
+useFeedforward = 1;
 
 %% setting feedforward variables
+if (error < 0)
+    sgn = -1;
+else
+    sgn = 1;
+end
 a_max = 3.0 * 0.25;
 v_max = 0.25;
-%% distance in mm.
 
 %% keep going until within 0.1 mm of target or 6 seconds pass
-while(currentTime < 12) & (abs(error) > 0.1)
+while(currentTime < 6)  & (abs(error) > 1)
     %% update distance vars
     currentDistance = robot.encoders.LatestMessage.Left - startDistance;
     
@@ -44,37 +53,91 @@ while(currentTime < 12) & (abs(error) > 0.1)
     errorIntegral = double(error*dt);
     
     %% calculate feedforward velocity to send to robot
-    if (error < 0)
-        sgn = -1;
-    else
-        sgn = 1;
-    end
-    u_ref = 0.5*trapezoidalVelocityProfile(currentTime,a_max,v_max,targetDistance,sgn)
-    if (u_ref > maxVelocity) 
-        u_ref = maxVelocity; 
-    end
-    if (u_ref < -maxVelocity) 
-        u_ref = -maxVelocity; 
-    end
+    u_ref = trapezoidalVelocityProfile(currentTime,a_max,v_max,targetDistance,sgn)
     
     %% calculate feedback velocity to send to robot
-    u_t = k_p*error + k_d*(errorDerivative) + k_i*(errorIntegral);
-    if (u_t > maxVelocity) 
-        u_t = maxVelocity; 
+    u_pid = k_p*error + k_d*(errorDerivative) + k_i*(errorIntegral);
+    
+    %% calculate velocity from both feedforward and feedback
+    u_t = (useFeedforward*u_ref + useFeedback*u_pid)*0.5;
+    
+    if (u_t > v_max)
+        u_t = v_max; 
     end
-    if (u_t < -maxVelocity) 
-        u_t = -maxVelocity; 
+    if (u_t < -v_max) 
+        u_t = -v_max; 
     end
-    robot.sendVelocity(u_ref,u_ref);
+    robot.sendVelocity(u_t,u_t);
+    
+    %% calculate simulated feedforward position
+    simX = simX+1000*dt*u_ref;
     
     %% Update time vs error graph
     figure(1);
     TIME = [TIME currentTime];
-    ERROR = [ERROR error];
-    plot(TIME, ERROR), title('Time vs Error'), xlabel('Time (seconds)'), ylabel('Error');
+    SIM = [SIM targetDistance-simX+simOffset];
+    REAL = [REAL error];
+    ERROR = [ERROR (error - (targetDistance - simX + simOffset))];
+    subplot(2,1,1), plot(TIME, REAL, TIME, SIM), title('Time vs Position'), xlabel('Time (seconds)'), ylabel('Position (mm)');
+    subplot(2,1,2), plot(TIME, ERROR), title('Time vs Error'), xlabel('Time (seconds)'), ylabel('Error (mm)');
     pause(.01);
     
     %% get the time and error to be passed on to the next
     lastError = error;
     lastTime = currentTime;
 end
+feedbackEnd = lastTime + 1;
+
+%% keep going until within 0.1 mm of target or 6 seconds pass
+while(currentTime < feedbackEnd) 
+    %% update distance vars
+    currentDistance = robot.encoders.LatestMessage.Left - startDistance;
+    
+    %% update time vars
+    currentTime = toc;
+    dt = double(currentTime - lastTime);
+    %% update error vars
+    error = double(targetDistance - currentDistance);
+    errorDerivative = double((error - lastError)/ dt);
+    errorIntegral = double(error*dt);
+    
+    %% calculate feedforward velocity to send to robot
+    u_ref = trapezoidalVelocityProfile(currentTime,a_max,v_max,targetDistance,sgn)
+   
+    %% calculate feedback velocity to send to robot
+    u_pid = k_p*error + k_d*(errorDerivative) + k_i*(errorIntegral);
+    
+    %% calculate velocity from both feedforward and feedback
+    if(useFeedback > 0)
+        u_t = (u_pid);
+        if (u_t > v_max)
+            u_t = v_max; 
+        end
+        if (u_t < -v_max) 
+            u_t = -v_max; 
+        end
+        robot.sendVelocity(u_t,u_t);
+    end
+    
+    %% calculate simulated feedforward position
+    simX = simX+1000*dt*u_ref;
+    
+    %% Update time vs error graph
+    figure(1);
+    TIME = [TIME currentTime];
+    SIM = [SIM targetDistance-simX+simOffset];
+    REAL = [REAL error];
+    ERROR = [ERROR (error - (targetDistance - simX + simOffset))];
+    subplot(2,1,1), plot(TIME, REAL, TIME, SIM), title('Time vs Position'), xlabel('Time (seconds)'), ylabel('Position (mm)');
+    subplot(2,1,2), plot(TIME, ERROR), title('Time vs Error'), xlabel('Time (seconds)'), ylabel('Error (mm)');
+    pause(.01);
+    
+    %% get the time and error to be passed on to the next
+    lastError = error;
+    lastTime = currentTime;
+end
+
+robot.sendVelocity(0,0);
+SIM(end-10:end)
+REAL(end-10:end)
+ERROR(end-10:end)
