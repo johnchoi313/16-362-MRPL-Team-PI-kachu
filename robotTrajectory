@@ -1,0 +1,41 @@
+%% robotModel > figure8ReferenceControl > robotTrajectory 
+classdef robotTrajectory < figure8ReferenceControl
+    
+    properties 
+        timeSamples; % Time samples
+        velSamples; % Velocity samples WRT time
+        distSamples; % Distance samples WRT time
+        poseSamples; % Pose list in [x;y;th] WRT time
+                     % x = 1; y = 2; th = 3; for 2D array access
+    end
+    
+    methods(Static = true)
+        function obj = robotTrajectory()
+            obj.timeSamples = [0]; %zeros(1,1000); %time starts at 0  
+            obj.velSamples = [0]; % velocity starts at 0
+            obj.distSamples = [0]; % distance starts at 0
+            obj.poseSamples = [0;0;0]; % pose starts at global origin 
+                                   % (x = 0,y = 0,th = 0)
+        end
+            
+        function time = getTime() 
+        %    time = figure8ReferenceControl.t;
+            time = 0;
+        end
+               
+        function velocity = getVelocityAtTime()
+        %    f8RC = figure8ReferenceControl; 
+        %    velocity = f8RC.computeControl(f8RC,f8RC.t);
+            velocity = 0;
+        end
+        
+        function dist = getDistAtTime()
+            dist = 0;
+        end
+      
+        function pose  = getPoseAtTime(obj,t)            
+            pose = [1;2;3];
+        end
+        
+    end    
+end
