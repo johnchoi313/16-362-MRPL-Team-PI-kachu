@@ -6,7 +6,6 @@ classdef figure8ReferenceControl < robotModel
         k_s; % Figure 8 curvature
         
         t0; % Time initial
-        t; % Time current
         tf; % Time final
         initial_delay; % AKA tPause on Lab docs.
     end
@@ -19,6 +18,9 @@ classdef figure8ReferenceControl < robotModel
             % the size of the curve itself down. 0.4 is a good value
             % for both.
             
+            % Get robotModel's constructor
+            obj = obj@robotModel();  
+            
             % Set velocity and curvature variables
             obj.k_v = Kv;
             obj.k_s = Ks;
@@ -28,7 +30,6 @@ classdef figure8ReferenceControl < robotModel
             obj.tf = 12.565/(Kv*Ks);
             obj.initial_delay = tPause;     
         end
-        
         
         function [V w] = computeControl(obj,t)
             % Return the linear and angular velocity that the robot
