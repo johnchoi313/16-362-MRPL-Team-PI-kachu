@@ -1,4 +1,4 @@
-%% robotModel > figure8ReferenceControl > robotTrajectory 
+%% robotModel > figure8ReferenceControl > robotTrajectory > trajectoryFollower
 classdef robotModel
      
     properties
