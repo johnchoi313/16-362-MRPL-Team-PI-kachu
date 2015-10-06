@@ -1,4 +1,4 @@
-%% robotModel > figure8ReferenceControl > robotTrajectory 
+%% robotModel > figure8ReferenceControl > robotTrajectory > trajectoryFollower
 classdef figure8ReferenceControl < robotModel
     
     properties
@@ -37,7 +37,7 @@ classdef figure8ReferenceControl < robotModel
             % pauses specified in the constructor are implemented here 
             % too.
         
-            % Shorten variable names
+            % Shorten constant names
             kv = obj.k_v;
             ks = obj.k_s;
             
