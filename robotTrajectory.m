@@ -41,12 +41,12 @@ classdef robotTrajectory < figure8ReferenceControl
                
         function velocity = getVelocity(obj,t)
             % compute velocity from superclass
-            [V w] = obj.computeControl(obj,t);
+            [V, w] = obj.computeControl(obj,t);
             velocity = V;
         end
         function omega = getOmega(obj,t)
             % compute omega from superclass
-            [V w] = obj.computeControl(obj,t);
+            [V, w] = obj.computeControl(obj,t);
             omega = w;
         end
         
@@ -63,7 +63,7 @@ classdef robotTrajectory < figure8ReferenceControl
             obj.distSamples(obj.index) = dist;
         end
       
-        function pose = updatePose(obj,t)  
+        function [x, y, th] = updatePose(obj,t)  
             % get dt
             dt = t - obj.totalTime;
             
@@ -81,10 +81,14 @@ classdef robotTrajectory < figure8ReferenceControl
             obj.curX = obj.curX + dx*dt;
             obj.curY = obj.curY + dy*dt;
             
-            % combine x,y and th to form a pose
-            pose = [obj.curX;obj.curY;obj.curTh];
+            %return x, y and theta as pose
+            x = obj.curX;
+            y = obj.curY;
+            th = obj.curTh;
             % add pose to poseSamples
-            obj.poseSamples(obj.index) = pose;
+            obj.poseSamples(1, obj.index) = x;
+            obj.poseSamples(2, obj.index) = y;
+            obj.poseSamples(3, obj.index) = th;
         end
         
         function updateTime(obj,t)
