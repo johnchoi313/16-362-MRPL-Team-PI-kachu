@@ -27,26 +27,26 @@ classdef figure8ReferenceControl < robotModel
             
             % set time variables
             obj.t0 = 0.0;
-            obj.tf = 12.565/(Kv*Ks);
+            obj.tf = 12.565; %/(Kv*Ks);
             obj.initial_delay = tPause;     
         end
         
-        function [V w] = computeControl(obj,t)
+        function [V, w] = computeControl(obj,t)
             % Return the linear and angular velocity that the robot
             % should be executing at time timeNow. Any zero velocity
             % pauses specified in the constructor are implemented here 
             % too.
         
             % Shorten constant names
-            kv = obj.k_v;
-            ks = obj.k_s;
+            Kv = obj.k_v;
+            Ks = obj.k_s;
             
             % Calculate left and right wheel velocities
-            vr = 0.3*kv + 0.14125 * (kv/ks) * sin(t*kv/(2*ks));
-            vl = 0.3*kv - 0.14125 * (kv/ks) * sin(t*kv/(2*ks));
+            vr = 0.3*Kv + 0.14125 * (Kv/Ks) * sin(t*Kv/(2*Ks));
+            vl = 0.3*Kv - 0.14125 * (Kv/Ks) * sin(t*Kv/(2*Ks));
             
             % Convert to V (linear velocity) and w (angular velocity)
-            [V w] = robotModel.vlvrToVw(vl,vr);
+            [V, w] = robotModel.vlvrToVw(obj,vl,vr);
         end
         
         function duration = getTrajectoryDuration(obj)
