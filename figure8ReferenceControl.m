@@ -27,7 +27,7 @@ classdef figure8ReferenceControl < robotModel
             
             % set time variables
             obj.t0 = 0.0;
-            obj.tf = 12.565; %/(Kv*Ks);
+            obj.tf = 13.565; %/(Kv*Ks);
             obj.initial_delay = tPause;     
         end
         
@@ -40,13 +40,20 @@ classdef figure8ReferenceControl < robotModel
             % Shorten constant names
             Kv = obj.k_v;
             Ks = obj.k_s;
-            
+        
+            if (t < 12.565)
             % Calculate left and right wheel velocities
             vr = 0.3*Kv + 0.14125 * (Kv/Ks) * sin(t*Kv/(2*Ks));
             vl = 0.3*Kv - 0.14125 * (Kv/Ks) * sin(t*Kv/(2*Ks));
             
             % Convert to V (linear velocity) and w (angular velocity)
             [V, w] = robotModel.vlvrToVw(obj,vl,vr);
+            else
+            V = 0.01;
+            w = 0.0;
+            end
+           
+        
         end
         
         function duration = getTrajectoryDuration(obj)
