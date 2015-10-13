@@ -109,6 +109,7 @@ classdef cubicSpiral < handle
                         
                         % Check if theta is in bounds
                         if(abs(t) > tMax)
+                            broke = true;
                             break;
                         end
                         
@@ -183,7 +184,7 @@ classdef cubicSpiral < handle
             persistent a1T a2T b1T b2T r1T r2T;
                     
             if(isempty(inited))
-                load('cubicSpirals2mm_015rads','a1Tab','a2Tab','b1Tab','b2Tab','r1Tab','r2Tab');
+                load('cubicSpirals','a1Tab','a2Tab','b1Tab','b2Tab','r1Tab','r2Tab');
                 inited = true;
                 a1T = a1Tab;a2T = a2Tab;b1T = b1Tab;b2T = b2Tab;r1T = r1Tab;r2T = r2Tab;
             end
@@ -247,6 +248,10 @@ classdef cubicSpiral < handle
                 as = -as;  
                 ss = -ss;
             end
+            as
+            bs
+            ss
+           
             curve = cubicSpiral([as bs ss],201);
         end
             
@@ -280,7 +285,7 @@ classdef cubicSpiral < handle
             th = 0;
             x = 0;
             y = 0;
-            for i=1:obj.numSamples-1
+            for i=1:obj.numSamples
                 s = (i)*ds;
                 
                 k_s = s*(a+(b*s))*(s-sf);
@@ -348,7 +353,7 @@ classdef cubicSpiral < handle
             xlim([-2*r 2*r]);
             ylim([-2*r 2*r]);
         end      
-                
+       
        function planVelocities(obj,Vmax)
             % Plan the highest possible velocity for the path where no
             % wheel may exceed Vmax in absolute value.
@@ -476,6 +481,22 @@ classdef cubicSpiral < handle
         
         function dist  = getTrajectoryDistance(obj)
             dist  = obj.distArray(:,obj.numSamples);  
+        end
+        
+        function VL  = getVLAtTime(obj,t)
+            if( t < obj.timeArray(1))
+                VL = 0.0;
+            else
+                VL  = interp1(obj.timeArray,obj.vlArray,t,'pchip','extrap');  
+            end
+        end
+        
+        function VR  = getVRAtTime(obj,t)
+            if( t < obj.timeArray(1))
+                VR = 0.0;
+            else
+                VR  = interp1(obj.timeArray,obj.vrArray,t,'pchip','extrap');  
+            end
         end
         
         function V  = getVAtTime(obj,t)
