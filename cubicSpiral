@@ -104,8 +104,8 @@ classdef cubicSpiral < handle
                         x = x + cos(t)*ds;
                         y = y + sin(t)*ds;
                         
-                        %Calculate Scale factor
-                        r = sqrt(x^2 + y^2);
+                        %Calculate Energy of Curve 
+                        r = r + ((k_s^2) * ds);
                         
                         % Check if theta is in bounds
                         if(abs(t) > tMax)
