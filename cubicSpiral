@@ -75,24 +75,47 @@ classdef cubicSpiral < handle
             n = 1;
             aMax = 195.0/sMax/sMax;
             bMax = 440.0/sMax/sMax/sMax;
+            
+            %Unit Curve sf = 1
+            sf = 1;
 
             % 15 minutes at scale = 10
             % X at scale = 1
             numA = 40000.0/scale;
             numB = 25000.0/scale;
+            
+            
             for a = -aMax:aMax/numA:aMax
                 for b = -bMax:bMax/numB:bMax
                     ds = sMax/(clothSamples-1); 
                     x=0.0; y = 0.0; t = 0.0; r = 0.0;
                     broke = false;
                     for i=1:clothSamples
-                    % Compute the curve. Break out of this loop, and then 
-                    % immediately continue to next iteration of the for b loop 
-                    % if tmax is exceeded in absolute value at any time.
+                        % Compute the curve. 
+                        % Break out of this loop, and then 
+                        % immediately continue to next iteration of the for b loop 
+                        % if tmax is exceeded in absolute value at any time
+                        
+                        s = (i)*ds;
+                        % Calculate Curvature
+                        k_s = s*(a+(b*s))*(s-sf);
+                        % Calculate Params
+                        t = t + k_s * ds;
+                        x = x + cos(t)*ds;
+                        y = y + sin(t)*ds;
+                        
+                        %Calculate Scale factor
+                        r = sqrt(x^2 + y^2);
+                        
+                        % Check if theta is in bounds
+                        if(abs(t) > tMax)
+                            break;
+                        end
                         
                     end
+                    
+                    
                     if(broke == true); continue; end;
-
                     q = atan2(y,x);
                     %if(~aTab.isInBounds(q,t)); continue; end;
                     % This is faster
@@ -252,11 +275,12 @@ classdef cubicSpiral < handle
             b = obj.parms(2);
             sf = obj.parms(3);
             ds = sf/(obj.numSamples-1);
+            
+            %Init Values
             th = 0;
             x = 0;
             y = 0;
             for i=1:obj.numSamples-1
-                
                 s = (i)*ds;
                 
                 k_s = s*(a+(b*s))*(s-sf);
@@ -271,6 +295,7 @@ classdef cubicSpiral < handle
                 obj.poseArray(3,i) = th;
                 obj.curvArray(i) = k_s;
             end
+            
             i = obj.numSamples;
             s = (i-1)*ds;  
             obj.distArray(i) = s;
