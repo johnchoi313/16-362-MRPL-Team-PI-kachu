@@ -248,9 +248,6 @@ classdef cubicSpiral < handle
                 as = -as;  
                 ss = -ss;
             end
-            as
-            bs
-            ss
            
             curve = cubicSpiral([as bs ss],201);
         end
@@ -343,10 +340,10 @@ classdef cubicSpiral < handle
             end
         end
         
-        function plot(obj)
+        function plot(obj,actX,actY)
             plotArray1 = obj.poseArray(1,:);
             plotArray2 = obj.poseArray(2,:);
-            plot(plotArray1,plotArray2,'r');
+            plot(plotArray1,plotArray2,actX,actY);
             xf = obj.poseArray(1,obj.numSamples);
             yf = obj.poseArray(2,obj.numSamples);
             r = max([abs(xf) abs(yf)]);
@@ -354,7 +351,7 @@ classdef cubicSpiral < handle
             ylim([-2*r 2*r]);
         end      
        
-       function planVelocities(obj,Vmax)
+        function planVelocities(obj,Vmax)
             % Plan the highest possible velocity for the path where no
             % wheel may exceed Vmax in absolute value.
             for i=1:obj.numSamples
@@ -390,12 +387,19 @@ classdef cubicSpiral < handle
                 end
                 obj.vlArray(i) = vl;
                 obj.vrArray(i) = vr;
-                obj.VArray(i) = (vr + vl)/2.0;
+                obj.VArray(i) = (vr + vl)/2.0
                 obj.wArray(i) = (vr - vl)/robotModel.W;                
             end
             % Now compute the times that are implied by the velocities and
             % the distances.
             obj.computeTimeSeries();
+            
+            % chopped off last element due to being NaN in timeArray
+            obj.timeArray = obj.timeArray(1:end-1);
+            obj.vlArray = obj.vlArray(1:end-1);
+            obj.vrArray = obj.vrArray(1:end-1);
+            obj.VArray = obj.VArray(1:end-1);
+            obj.wArray = obj.wArray(1:end-1);
         end
         
         function J = getJacobian(obj)
@@ -476,14 +480,14 @@ classdef cubicSpiral < handle
         end  
         
         function time  = getTrajectoryDuration(obj)
-            time  = obj.timeArray(:,obj.numSamples);  
+            time  = obj.timeArray(end); 
         end
         
         function dist  = getTrajectoryDistance(obj)
             dist  = obj.distArray(:,obj.numSamples);  
         end
         
-        function VL  = getVLAtTime(obj,t)
+        function VL  = getVLAtTime(obj,t) %John
             if( t < obj.timeArray(1))
                 VL = 0.0;
             else
@@ -491,7 +495,7 @@ classdef cubicSpiral < handle
             end
         end
         
-        function VR  = getVRAtTime(obj,t)
+        function VR  = getVRAtTime(obj,t) %John
             if( t < obj.timeArray(1))
                 VR = 0.0;
             else
@@ -535,7 +539,8 @@ classdef cubicSpiral < handle
             obj.parms(1) = - obj.parms(1);  
             obj.parms(2) = - obj.parms(2);
             obj.integrateCommands();
-        end 
+        end
+        
         function reflectY(obj)
             % reflect curve around Y axis by modifying parameters
             obj.parms(2) = - obj.parms(2);  
