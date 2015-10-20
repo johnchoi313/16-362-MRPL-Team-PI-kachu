@@ -19,6 +19,9 @@ classdef cubicSpiral < handle
         distArray = [];
         timeArray = [];
         poseArray = [];
+        XArray = [];
+        YArray = [];
+        ThArray = [];
         curvArray = [];
         vlArray = []
         vrArray = []
@@ -341,6 +344,7 @@ classdef cubicSpiral < handle
         end
         
         function plot(obj,actX,actY)
+            hold on
             plotArray1 = obj.poseArray(1,:);
             plotArray2 = obj.poseArray(2,:);
             plot(plotArray1,plotArray2,actX,actY);
@@ -396,6 +400,13 @@ classdef cubicSpiral < handle
             
             % chopped off last element due to being NaN in timeArray
             obj.timeArray = obj.timeArray(1:end-1);
+
+            obj.XArray = obj.poseArray(1,1:end-1); 
+            obj.YArray = obj.poseArray(2,1:end-1);
+            obj.ThArray = obj.poseArray(3,1:end-1);
+       
+            obj.distArray = obj.distArray(1:end-1);
+            obj.curvArray = obj.curvArray(1:end-1);
             obj.vlArray = obj.vlArray(1:end-1);
             obj.vrArray = obj.vrArray(1:end-1);
             obj.VArray = obj.VArray(1:end-1);
@@ -524,6 +535,18 @@ classdef cubicSpiral < handle
             y = interp1(obj.timeArray,obj.poseArray(2,:),t,'pchip','extrap');
             th = interp1(obj.timeArray,obj.poseArray(3,:),t,'pchip','extrap');
             pose  = [x ; y ; th];  
+        end  
+        
+        function x = getXAtTime(obj,t)
+            x = interp1(obj.timeArray,obj.XArray,t,'pchip','extrap');
+        end  
+        
+        function y = getYAtTime(obj,t)
+            y = interp1(obj.timeArray,obj.YArray,t,'pchip','extrap');
+        end  
+        
+        function Th  = getThAtTime(obj,t)
+            Th = interp1(obj.timeArray,obj.ThArray,t,'pchip','extrap');
         end  
         
         function parms  = getParms(obj)
