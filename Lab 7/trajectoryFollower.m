@@ -59,26 +59,56 @@ classdef trajectoryFollower < robotTrajectory
             curve.planVelocities(0.25);
             %initialize time
             tic;
-            t = 0.01
+            t = 0.01;
             dt = 0.01;
             lastTime = t;
-            tf = curve.getTrajectoryDuration()
+            tf = curve.getTrajectoryDuration();
             
+            % set constants for feedback
+            kx = 0.07;
+            ky = 0.07;
+            feedback = 1;
             % run the loop
             while(t < tf)    
-                % send wheel velocities
-                vl = curve.getVLAtTime(t); %curve.vlArray(index);
-                vr = curve.getVRAtTime(t); %curve.vrArray(index);
                 
-                V_feedback = 
-                w_feedback = 
+                % get wheeel velocities from feedforward
+                vl = curve.getVLAtTime(t);
+                vr = curve.getVRAtTime(t);
                 
-                vl_feedback = function(V_feeback,w_feedback);
-                vr_feedback = function(V_feedback,w_feedback);
+                %convert pose to matrices for processing
+                p = pose(obj.actX,obj.actY,obj.actTh);
                 
-                vl = vl + vl_feedback;
-                vr = vr + vr_feedback;
+                if(feedback == 1)
+                    % get current pose
+                    simX = curve.getXAtTime(t);
+                    simY = curve.getYAtTime(t);
+                    simTh = curve.getThAtTime(t);
+
+                    % get error
+                    wrp = zeros(2);
+                    wrp(1) = simX - obj.actX;
+                    wrp(2) = simY - obj.actY;
+
+                    % multiply the two
+                    rrp = p.aToBRot() * wrp;
+
+                    % get V and W
+                    kxy = zeros(2,2);
+                    kxy(1,1) = kx;
+                    kxy(2,2) = ky;
+                    fb_Vw = kxy * rrp;
+                    fb_V = fb_Vw(1);
+                    fb_w = fb_Vw(2);
+                    [fb_vl fb_vr] = robotModel.VwTovlvr(fb_V, fb_w);
+
+                    % add feedback to wheel velocities
+                    vl = vl + fb_vl;
+                    vr = vr + fb_vr;
+
+                end
                 
+                % send the velocity
+ 
                 robot.sendVelocity(vl,vr);
 
                 index = index + 1;
@@ -98,7 +128,7 @@ classdef trajectoryFollower < robotTrajectory
                     [actV, actw] = robotModel.vlvrToVw(actVL, actVR);
                     % update pose
                     [obj.actX, obj.actY, obj.actTh] = ...
-                    obj.updateActualPose(obj, t, dt, obj.actX, obj.actY, obj.actTh, actV, actw, obj.curTh);      
+                    obj.updateActualPose(obj, t, dt, obj.actX, obj.actY, obj.actTh, actV, actw);      
 
                     %% ------ Plot ACTUAL vs THEORETICAL ------- %%
                     curve.plot(obj.actXSamples,obj.actYSamples);
@@ -120,7 +150,6 @@ classdef trajectoryFollower < robotTrajectory
             
             %Stop the robot
             robot.sendVelocity(0,0); 
-            
         end
     end
 end
