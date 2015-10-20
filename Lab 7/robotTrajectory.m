@@ -25,13 +25,9 @@ classdef robotTrajectory < handle
             y = Y + dy*dt;
         end 
         
-        function [x, y, th] = updateActualPose(obj,t,dt,X,Y,Th,V,w,simTh)   
+        function [x, y, th] = updateActualPose(obj,t,dt,X,Y,Th,V,w)   
             % update theta
-            if(simTh == 0)
-                th = double( (Th + w*dt) );
-            else
-                th = double(((Th + w*dt) + (simTh + w*dt))*0.5);
-            end
+            th = double( (Th + w*dt) );
             
             % get x,y vector from theta
             dx = double(V*cos(th));
