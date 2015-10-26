@@ -1,0 +1,21 @@
+-Got rid of robotTrajectory.m
+
+(THIS MUST HAPPEN IN BEGINNING TO MAKE END TO END PLOT WORK)
+-Time update happens in beginning
+-Encoder update happens in beginning
+-Index update happens in beginning
+
+-do not pre-initialize zeros. Makes plot ugly.
+-plot information ONLY AT END to speed up processing
+
+-fixed time initialization
+-set t = 0 beginning. No NaN errors.
+
+-reorganized loop to make work
+
+-added labels to plot
+-added title to plot
+
+-renamed cubicspiral plot() function to plotData() to prevent recursion
+
+-added my own plotting function to get end-to-end simulated plotting to work
