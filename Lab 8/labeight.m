@@ -15,6 +15,7 @@ ri.plotRvsTh(2.0);
 ri.plotXvsY(2.0);
 % find line (pallet width = 12.5; half of this is roughly 7)
 [x y th] = ri.bestLineCandidate(7.0);
+th
 
 % create trajectory follower
 tf = trajectoryFollower(robot);

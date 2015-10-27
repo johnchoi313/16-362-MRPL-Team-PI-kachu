@@ -81,7 +81,7 @@ classdef trajectoryFollower < handle
             %initialize time
             tic;
             t = 0;
-            tf = obj.curve.getTrajectoryDuration();
+            tf = obj.curve.getTrajectoryDuration()
             % run the loop
             while(t < tf)    
                 %% UPDATE ENCODERS, TIME, AND INDEX %%

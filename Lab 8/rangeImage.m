@@ -2,9 +2,11 @@ classdef rangeImage < handle
     %rangeImage Stores a 1D range image and provides related services.
 
     properties(Constant)
-        maxUsefulRange = 2.0;
+        maxUsefulRange = 1.0;
         minUsefulRange = 0.05;
-        maxRangeForTarget = 1.0;
+        maxRangeForTarget = 0.4;
+        sensorOffset = 0.23;
+        sensorThOffset = 0.044;
     end
 
     properties(Access = public)
@@ -97,18 +99,23 @@ classdef rangeImage < handle
             % check every possible midpoint
             for mid = 1:length(obj.rArray)
                 % check this candidate
-                [e n t] = obj.findLineCandidate(mid,maxLen);
+                [e n t midX midY] = obj.findLineCandidate(mid,maxLen);
                 % find line with greatest number of pixels
                 if n > numMax;
                     numMax = n;
-                    x = obj.xArray(mid);
-                    y = obj.yArray(mid);
-                    th = 0;                   
+                    % get th from sensor
+                    th = t;     
+                    % get x, y from sensor with offset
+                    x = midX - (obj.sensorOffset * cos(th));
+                    y = midY - (obj.sensorOffset * sin(th));                  
+                    % adjust offset based on theta
+                    x = x + (obj.sensorThOffset*abs(th) * cos(th));
+                    y = y + (obj.sensorThOffset*abs(th) * sin(th));
                 end                    
-            end            
+            end
         end
             
-        function [err num th] = findLineCandidate(obj,middle,maxLen)
+        function [err num th midX midY] = findLineCandidate(obj,middle,maxLen)
             % Find the longest sequence of pixels centered at pixel
             % “middle” whose endpoints are separated by a length less
             % than the provided maximum. Return the line fit error, the
@@ -148,9 +155,71 @@ classdef rangeImage < handle
             % return data
             num = length(rArray);
             err = sum(distArray)/num
-            th = 0;
+            
+            % get endpoints to calculate angle
+            %x1 = xArray(1);
+            %y1 = yArray(1);
+            %x2 = xArray(num);
+            %y2 = yArray(num);
+            % get angle 
+            %th = atan((x2-x1)/(y2-y1));
+            
+            % Get best fit midpoint and slope angle
+            length(xArray);
+            length(yArray);
+            [slope, midX, midY] = obj.bestFit(xArray, yArray);  
+            % get angle with line of best fit
+            th1 = (atan(slope) - pi/2);
+            th2 = (atan(slope) + pi/2);
+            if (midY < 0)
+                th = th1;
+            else
+                th = th2;
+            end
         end
 
+        function [ slope, midX, midY ] = bestFit(obj, X, Y)
+            % Input X and Y as a 1-D Row vector. Ex a = [1 2 3 ...]
+            % outputs slope and midpoint cords (x,y) of line segment
+
+            %Parameters for plotting only
+            resolution = 0.01;
+            numPoints = size(X,2);
+
+            % Make X and Y a column vector
+            X = X'; 
+            Y = Y'; 
+
+            % Vector of ones for constant term
+            Const = ones(size(X)); 
+            % Find the coefficients
+            Coeffs = [X Const]\Y ;
+
+            % Slope and Y intercept of inputed data
+            m1 = Coeffs(1);
+            b1 = Coeffs(2);
+
+            % Evaluate fitted curve at many points
+            bestFitX = 0:0.01:1;
+            % Vector of ones for constant term
+            Const = ones(size(X)); 
+            % Find the coefficients
+            coeffs = [X Const]\Y; 
+
+            % Find slope and y-intercept of best fit line
+            slope = coeffs(1);
+            yIntercept = coeffs(2);
+% 
+%             bestFitX = X(1):resolution:X(end); %numPoints;
+%             bestFitY = slope*bestFitX+yIntercept;
+
+            % Find Midpoint
+            %midXIndex = round(length(X)/2); %round(size(bestFitX,2)/2);
+            midX = sum(X)/length(X);
+            midY = sum(Y)/length(Y);
+        end
+
+        
         function num = numPixels(obj)
             num = obj.numPix;
         end
