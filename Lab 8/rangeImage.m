@@ -5,8 +5,10 @@ classdef rangeImage < handle
         maxUsefulRange = 1.0;
         minUsefulRange = 0.05;
         maxRangeForTarget = 0.4;
+        % Constants used to offset motion
         sensorOffset = 0.23;
-        sensorThOffset = 0.044;
+        sensorThOffset = 0.06;
+        sideThOffset = 0.4;
     end
 
     properties(Access = public)
@@ -66,7 +68,6 @@ classdef rangeImage < handle
         function plotRvsTh(obj, maxRange)
             % plot the range image after removing all points exceeding
             % maxRange
-            
             % figure 1
             figure(1);
             % plot the information (meters)
@@ -79,9 +80,7 @@ classdef rangeImage < handle
         end
 
         function plotXvsY(obj, maxRange)
-            % plot the range image after removing all points exceeding
-            % maxRange
-            
+            % plot the range image after removing all points exceeding maxRange
             % figure 1
             figure(2);
             % plot the information (meters)
@@ -105,12 +104,9 @@ classdef rangeImage < handle
                     numMax = n;
                     % get th from sensor
                     th = t;     
-                    % get x, y from sensor with offset
-                    x = midX - (obj.sensorOffset * cos(th));
-                    y = midY - (obj.sensorOffset * sin(th));                  
-                    % adjust offset based on theta
-                    x = x + (obj.sensorThOffset*abs(th) * cos(th));
-                    y = y + (obj.sensorThOffset*abs(th) * sin(th));
+                    % get x and y from sensor
+                    x = midX;
+                    y = midY;      
                 end                    
             end
         end
@@ -137,11 +133,9 @@ classdef rangeImage < handle
             % check every range
             for i = 1:length(rArray)
                 % get distance of this pixel from mid
-                dist(i) = ((xArray(i)-midX)^2.0 + (yArray(i)-midY)^2.0)^0.5;
-                
+                dist(i) = ((xArray(i)-midX)^2.0 + (yArray(i)-midY)^2.0)^0.5;             
                 % if out of range, add index to list of indices to be removed
-                if(dist(i) > maxLen) remove(length(remove)+1) = i; end
-                
+                if(dist(i) > maxLen) remove(length(remove)+1) = i; end              
                 % square distance after done using it
                 dist(i) = dist(i)^2;
             end
@@ -154,15 +148,7 @@ classdef rangeImage < handle
             
             % return data
             num = length(rArray);
-            err = sum(distArray)/num
-            
-            % get endpoints to calculate angle
-            %x1 = xArray(1);
-            %y1 = yArray(1);
-            %x2 = xArray(num);
-            %y2 = yArray(num);
-            % get angle 
-            %th = atan((x2-x1)/(y2-y1));
+            err = sum(distArray)/num;
             
             % Get best fit midpoint and slope angle
             length(xArray);
@@ -171,11 +157,40 @@ classdef rangeImage < handle
             % get angle with line of best fit
             th1 = (atan(slope) - pi/2);
             th2 = (atan(slope) + pi/2);
-            if (midY < 0)
+            
+            % choose th based on which one is closer to robot
+            dist1 = ( (midX - cos(th1))^2 + (midY - sin(th1))^2 ) ^ 0.5;
+            dist2 = ( (midX - cos(th2))^2 + (midY - sin(th2))^2 ) ^ 0.5;
+            if (dist1 < dist2)
                 th = th1;
             else
                 th = th2;
             end
+            
+            % make any offsets depending on pallet location
+            [ midX, midY ] = obj.adjustOffsets(midX,midY,th);
+        end
+        
+        function [x y] = adjustOffsets(obj, midX, midY, th)                                                  
+            % adjust offset based on robot th (offset to sides)
+            if (abs(midX/midY) < 2.0)
+                if(midY > 0)
+                    % pallet is on left of robot
+                    midX = midX - obj.sideThOffset*(midX/midY);
+                else
+                    % pallet is on right of robot
+                    midX = midX + obj.sideThOffset*(midX/midY);
+                end
+            end
+            
+            % adjust offset (moves closer for forward and backward)
+            x = midX + (obj.sensorThOffset*abs(th)-obj.sensorOffset) * cos(th);
+            y = midY + (obj.sensorThOffset*abs(th)-obj.sensorOffset) * sin(th);    
+            
+            % if back, add a little side offset
+            if(midX < 0)
+                midY = midY - obj.sideThOffset*(th);
+            end 
         end
 
         function [ slope, midX, midY ] = bestFit(obj, X, Y)
@@ -208,13 +223,11 @@ classdef rangeImage < handle
 
             % Find slope and y-intercept of best fit line
             slope = coeffs(1);
-            yIntercept = coeffs(2);
-% 
-%             bestFitX = X(1):resolution:X(end); %numPoints;
-%             bestFitY = slope*bestFitX+yIntercept;
+            %yIntercept = coeffs(2);
+            %bestFitX = X(1):resolution:X(end); %numPoints;
+            %bestFitY = slope*bestFitX+yIntercept;
 
             % Find Midpoint
-            %midXIndex = round(length(X)/2); %round(size(bestFitX,2)/2);
             midX = sum(X)/length(X);
             midY = sum(Y)/length(Y);
         end

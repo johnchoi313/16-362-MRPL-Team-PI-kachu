@@ -1,5 +1,6 @@
 classdef robotRanges < handle
-
+    %robotRanges collects 
+    
      properties
         robot;
      end
@@ -10,10 +11,8 @@ classdef robotRanges < handle
              obj.robot = robot;
              obj.robot.startLaser();
          end
-         % get ranges
-         function Ranges = getRanges(obj) 
-             % number of scans 
-             n = 10; 
+         % scans the environment n times and returns as single array
+         function Ranges = getRanges(obj,n) 
              % pre-allocate range array
              Ranges = zeros(1, 360*n);
              % scan multiple times
