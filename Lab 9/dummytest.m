@@ -24,22 +24,26 @@ w1pts = w;
 modelPts = [x1pts ; y1pts ; w1pts];
 
 % pick a pose
-dx = -0.15*rand();
-dy = -0.15*rand();
-dt = -0.15+0.2*rand();
+dx = -.0*rand();
+dy = -.0*rand();
+dt = -.05+0.2*rand();
 robotPose = pose(0.0+dx,0.0+dy,0.0+dt);
+robotPose = pose(0,0,0);
+
+% initialize the line map localizer
+lml = lineMapLocalizer(lines_p1,lines_p2, 0.01,0.001,0.0005);
 
 % loop the control infinitely
 while(true)
     % Add a short pause
     pause(0.1);
-    
+   
     % Update pose
-    [success, robotPose] = lml.refinePose(robotPose, modelPts, 10);
+    [success, robotPose] = lml.refinePose(robotPose, modelPts, 20);
         
     %robot pose
-    x = robotPose.poseVec(1);
-    y = robotPose.poseVec(2);
+    x = robotPose.poseVec(1)
+    y = robotPose.poseVec(2)
     body = robotModel.bodyGraph();
     body = robotPose.bToA()*body;
     
@@ -49,7 +53,8 @@ while(true)
     
     % plot everything
     figure(1);
-    plot(wallsX,wallsY, 'b', body(1,:), body(2,:), 'g*',worldLidarPts(1,:),worldLidarPts(2,:), 'r*');
+    plot(lines_p1(1,:),lines_p1(2,:), 'b', lines_p2(1,:),lines_p2(2,:), 'b',...
+         body(1,:), body(2,:), 'g*',worldLidarPts(1,:),worldLidarPts(2,:), 'r*');
     title('X/Y Ranges'),...
     axis([-2.5 2.5 -2.5 2.5]),...
     xlabel('X (meters)'),... 

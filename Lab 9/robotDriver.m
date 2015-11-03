@@ -23,36 +23,40 @@ lml = lineMapLocalizer(lines_p1,lines_p2, 0.01,0.001,0.0005);
 
 % initialize the pose
 %15*0.0254 = .381, 9*.0254 = .2286;
+robotPose = pose(xO,yO,thO);
 robotPose = pose(0,0,0);
+i = 0;
 
 % loop the control infinitely
 while(true)
+    
     % Add a short pause
     pause(0.1);
     
     % Get the keypress and move the robot
     robotKeypressDriver.drive(robot,1);
-    
+
     % Get one laser scan
     ranges = rr.getRanges(1);
-    % Update the information and plot (use only evry 5th point)
-    ri = rangeImage(ranges,5,true);  
+    % Update the information and plot (use only every 5th point)
+    ri = rangeImage(ranges,10,true);  
     % convert ranges to xy coordinates
-    modelPts = [ri.xArray ; ri.yArray; ones(1,length(ri.xArray))];
+    modelPts = [ri.xArray ; ri.yArray; ones(1,length(ri.xArray))];        
     % convert lidar to frame
     modelPts = robotPose.bToA()*modelPts;
-    
+
     % Update pose
-    [success, robotPose] = lml.refinePose(robotPose, modelPts, 10);
+    [success, robotPose] = lml.refinePose(robotPose, modelPts, 20);
         
     %robot pose
-    x = robotPose.poseVec(1);
-    y = robotPose.poseVec(2);
+    x = robotPose.poseVec(1)
+    y = robotPose.poseVec(2)
     body = robotModel.bodyGraph();
     body = robotPose.bToA()*body;
     
     % world view
-    worldLidarPts = robotModel.senToWorld(robotPose)*modelPts;
+    worldLidarPts = robotPose.bToA()*modelPts;
+    %worldLidarPts = robotModel.senToWorld(robotPose)*modelPts;
     
     % plot everything
     figure(1);
@@ -60,6 +64,6 @@ while(true)
     title('X/Y Ranges'),...
     axis([-.5 1.5 -.5 1.5]),...
     xlabel('X (meters)'),... 
-    ylabel('Y (meters)');   
+    ylabel('Y (meters)');    
 
 end

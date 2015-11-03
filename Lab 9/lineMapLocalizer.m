@@ -69,7 +69,7 @@ classdef lineMapLocalizer < handle
 
         function [errPlus0,J] = getJacobian(obj,poseIn,modelPts)
             % Computes the gradient of the error function
-            errPlus0 = fitError(obj,poseIn,modelPts)
+            errPlus0 = fitError(obj,poseIn,modelPts);
             eps = 0.001;
             dp = [eps ; 0.0 ; 0.0];
             newPose = pose(poseIn.poseVec + dp);
@@ -83,7 +83,7 @@ classdef lineMapLocalizer < handle
             dp = [0.0 ; 0.0 ; eps];
             newPose = pose(poseIn.poseVec+dp);
             errorTh = (fitError(obj,newPose,modelPts) - errPlus0)/eps;
-            J = [errorX;errorY;errorTh] 
+            J = [errorX;errorY;errorTh];
         end
  
         function [success, outPose] = refinePose(obj,inPose,ptsInModelFrame,maxIters)
@@ -97,29 +97,24 @@ classdef lineMapLocalizer < handle
 
             % get rid of outliers
             modelPts = ptsInModelFrame;
-            %ids = obj.throwOutliers(inPose,modelPts);
-            %modelPts(:,ids) = [];
+            ids = obj.throwOutliers(inPose,modelPts);
+            modelPts(:,ids) = [];
             % use sensor offset coords
-            outPose = pose(robotModel.senToWorld(inPose));
+            outPose = inPose; %pose(robotModel.senToWorld(inPose));
             % initialize error
             errPlus0 = obj.errThresh + 1;
             
             % compute Jacobian up to maxIters
             i = 0;
-            while (i < maxIters) && (errPlus0 > obj.errThresh) 
-                i = i + 1
-                [errPlus0,J] = obj.getJacobian(outPose,modelPts)
-                outPose.poseVec = J .* inPose.poseVec;       
-                dPose = (-J * obj.gain).*inPose.poseVec;
+            while (i < maxIters) %&& (errPlus0 > obj.errThresh) 
+                i = i + 1;
+                [errPlus0,J] = obj.getJacobian(outPose,modelPts);
+                dPose = (-J)*.01;
                 outPose.poseVec = outPose.poseVec + dPose;
-                %dPose = -J; %(-J * obj.gain).*inPose.poseVec;
-                %outPose.poseVec = inPose.poseVec + dPose;
-                % outPose = pose(J .* inPose.poseVec) + dPose;
-                %outPose.poseVec = outPose.bToA() * outPose.poseVec;
             end
             
             %adjust robot sensor offset
-            outPose = pose(robotModel.robToWorld(outPose));
+            %outPose = pose(robotModel.robToWorld(outPose));
             
             % check whether within error threshold
             if (errPlus0 < obj.errThresh) 
