@@ -74,10 +74,10 @@ classdef lineMapLocalizer < handle
             eps = 0.001;
             dp = [eps ; 0.0 ; 0.0];
             newPose = pose(poseIn.getPose+dp);
-            % Fill me in...
+            
+            %% --- FILL ME IN --- %%
             errorX = (fitError(obj,newPose,modelPts) - errplus0)/eps;
-            
-            
+                        
             dp = [0.0 ; eps ; 0.0];
             newPose = pose(poseIn.getPose+dp);
             errorY = (fitError(obj,newPose,modelPts) - errplus0)/eps;
@@ -85,10 +85,7 @@ classdef lineMapLocalizer < handle
             dp = [0.0 ; 0.0 ; eps];
             newPose = pose(poseIn.getPose+dp);
             errorTh = (fitError(obj,newPose,modelPts) - errplus0)/eps;
-            J = [errorX;errorY;errorTh]
-            
+            J = [errorX;errorY;errorTh]            
         end
- 
-    end
-    
+    end    
 end
