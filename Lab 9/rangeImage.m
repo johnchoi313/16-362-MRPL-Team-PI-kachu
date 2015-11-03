@@ -26,9 +26,9 @@ classdef rangeImage < handle
             % Converts the data to rectangular coordinates
             if(nargin == 3)
                 n=0;
-                %for i=1:skip:length(ranges) % SKIP DOES NOT WORK, BUT
+                for i=1:skip:length(ranges) % SKIP DOES NOT WORK, BUT
                 %ARGUMENT IS NEEDED FOR SOME REASON
-                for i=1:length(ranges)
+                %for i=1:length(ranges)
                     n = n + 1;
                     obj.rArray(n) = ranges(i);
                     obj.tArray(n) = (i-1)*(pi/180);

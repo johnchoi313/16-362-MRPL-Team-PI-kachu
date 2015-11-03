@@ -38,8 +38,7 @@ classdef lineMapLocalizer < handle
             r2Array = zeros(size(obj.lines_p1,2),size(pi,2));
 
             for i = 1:size(obj.lines_p1,2)
-                [r2Array(i,:) , ~] = closestPointOnLineSegment(pi,...
-                obj.lines_p1(:,i),obj.lines_p2(:,i));   
+                [r2Array(i,:) , ~] = closestPointOnLineSegment(pi,obj.lines_p1(:,i),obj.lines_p2(:,i));   
             end
 
             ro2 = min(r2Array,[],1);
@@ -76,8 +75,7 @@ classdef lineMapLocalizer < handle
             newPose = pose(poseIn.poseVec + dp);
             % Fill me in...
             errorX = (fitError(obj,newPose,modelPts) - errPlus0)/eps;
-            
-            
+                        
             dp = [0.0 ; eps ; 0.0];
             newPose = pose(poseIn.poseVec+dp);
             errorY = (fitError(obj,newPose,modelPts) - errPlus0)/eps;
@@ -85,10 +83,50 @@ classdef lineMapLocalizer < handle
             dp = [0.0 ; 0.0 ; eps];
             newPose = pose(poseIn.poseVec+dp);
             errorTh = (fitError(obj,newPose,modelPts) - errPlus0)/eps;
-            J = [errorX;errorY;errorTh]
-            
+            J = [errorX;errorY;errorTh] 
         end
  
-    end
-    
+        function [success, outPose] = refinePose(obj,inPose,ptsInModelFrame,maxIters)
+            % refine robot pose in world (inPose) based on lidar
+            % registration. Terminates if maxIters iterations is
+            % exceeded or if insufficient points match the lines.
+            % Even if the minimum is not found, outPose will contain
+            % any changes that reduced the fit error. Pose Changes that
+            % increase fit error are not included and termination
+            % occurs thereafter.
+
+            % get rid of outliers
+            modelPts = ptsInModelFrame;
+            %ids = obj.throwOutliers(inPose,modelPts);
+            %modelPts(:,ids) = [];
+            % use sensor offset coords
+            outPose = pose(robotModel.senToWorld(inPose));
+            % initialize error
+            errPlus0 = obj.errThresh + 1;
+            
+            % compute Jacobian up to maxIters
+            i = 0;
+            while (i < maxIters) && (errPlus0 > obj.errThresh) 
+                i = i + 1
+                [errPlus0,J] = obj.getJacobian(outPose,modelPts)
+                outPose.poseVec = J .* inPose.poseVec;       
+                dPose = (-J * obj.gain).*inPose.poseVec;
+                outPose.poseVec = outPose.poseVec + dPose;
+                %dPose = -J; %(-J * obj.gain).*inPose.poseVec;
+                %outPose.poseVec = inPose.poseVec + dPose;
+                % outPose = pose(J .* inPose.poseVec) + dPose;
+                %outPose.poseVec = outPose.bToA() * outPose.poseVec;
+            end
+            
+            %adjust robot sensor offset
+            outPose = pose(robotModel.robToWorld(outPose));
+            
+            % check whether within error threshold
+            if (errPlus0 < obj.errThresh) 
+                success = true;
+            else
+                success = false;
+            end            
+        end        
+    end    
 end

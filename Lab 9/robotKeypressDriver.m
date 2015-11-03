@@ -13,33 +13,63 @@ classdef robotKeypressDriver < handle
     end
     
     methods (Static = true)
-        function drive(robot,moveV,rotateV)
-            % Get keypress
-            key = pollKeyboard();
+        function drive(robot,vGain)
+            control = 2;
             
-            % Check key and determine velocity
-            if(key ~= false)
-                vl = 0.0;
-                vr = 0.0;
-                
-                % slightly modified velocities for more intuitive control
-                if(strcmp(key, 'uparrow'))
-                    disp('up');
-                    vl = moveV; vr = moveV;
-                elseif(strcmp(key,'downarrow'))
-                    disp('down');
-                    vl = -moveV; vr = -moveV;
-                elseif(strcmp(key,'leftarrow'))
-                    disp('left');
-                    vl = -rotateV; vr = rotateV;
-                elseif(strcmp(key,'rightarrow'))  
-                    disp('right');
-                    vl = rotateV; vr = -rotateV;
-                elseif(strcmp(key,'s'))  
-                    disp('stop');
-                    vl = 0.0; vr = 0.0;
-                end;
-                robot.sendVelocity(vl,vr);
+            if(control == 1)
+                % Get keypress
+                key = pollKeyboard();
+                % Check key and determine velocity
+                if(key ~= false)
+                    vl = 0.0;
+                    vr = 0.0;        
+                    % slightly modified velocities for more intuitive control
+                    if(strcmp(key, 'uparrow'))
+                        disp('up');
+                        vl = vGain; vr = vGain;
+                    elseif(strcmp(key,'downarrow'))
+                        disp('down');
+                        vl = -vGain; vr = -vGain;
+                    elseif(strcmp(key,'leftarrow'))
+                        disp('left');
+                        vl = -vGain; vr = vGain;
+                    elseif(strcmp(key,'rightarrow'))  
+                        disp('right');
+                        vl = vGain; vr = -vGain;
+                    elseif(strcmp(key,'s'))  
+                        disp('stop');
+                        vl = 0.0; vr = 0.0;
+                    end;
+                    robot.sendVelocity(vl,vr);
+                end
+            elseif(control == 2)
+                % drive the robot
+                Vmax = 0.02*vGain;
+                dV = 0.006*vGain;
+                key = pollKeyboard();
+                % Check key and determine velocity
+                if(key ~= false)
+                    vl = 0.0;
+                    vr = 0.0;        
+                    % slightly modified velocities for more intuitive control
+                    if(strcmp(key, 'uparrow'))
+                        disp('up');
+                        vl = Vmax; vr = Vmax;
+                    elseif(strcmp(key,'downarrow'))
+                        disp('down');
+                        vl = -Vmax; vr = -Vmax;
+                    elseif(strcmp(key,'leftarrow'))
+                        disp('left');
+                        vl = Vmax; vr = Vmax+dV;
+                    elseif(strcmp(key,'rightarrow'))  
+                        disp('right');
+                        vl = Vmax+dV; vr = Vmax;
+                    elseif(strcmp(key,'s'))  
+                        disp('stop');
+                        vl = 0.0; vr = 0.0;
+                    end;
+                    robot.sendVelocity(vl,vr);
+                end
             end
         end    
     end
