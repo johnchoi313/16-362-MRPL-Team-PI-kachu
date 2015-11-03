@@ -9,6 +9,7 @@ classdef pose < handle
     end
     
     properties(Access = private)
+        
     end
     
     properties(Access = public)
