@@ -14,10 +14,11 @@ classdef robotKeypressDriver < handle
     
     methods (Static = true)
         function drive(robot,vGain)
-            control = 2;
+            control = 1;
             
             if(control == 1)
-                % Get keypress
+                Vmax = 0.02*vGain;
+                % Get keypress             
                 key = pollKeyboard();
                 % Check key and determine velocity
                 if(key ~= false)
@@ -25,19 +26,19 @@ classdef robotKeypressDriver < handle
                     vr = 0.0;        
                     % slightly modified velocities for more intuitive control
                     if(strcmp(key, 'uparrow'))
-                        disp('up');
-                        vl = vGain; vr = vGain;
+                        %disp('up');
+                        vl = Vmax; vr = Vmax;
                     elseif(strcmp(key,'downarrow'))
-                        disp('down');
-                        vl = -vGain; vr = -vGain;
+                        %disp('down');
+                        vl = -Vmax; vr = -Vmax;
                     elseif(strcmp(key,'leftarrow'))
-                        disp('left');
-                        vl = -vGain; vr = vGain;
+                        %disp('left');
+                        vl = -Vmax; vr = Vmax;
                     elseif(strcmp(key,'rightarrow'))  
-                        disp('right');
-                        vl = vGain; vr = -vGain;
+                        %disp('right');
+                        vl = Vmax; vr = -Vmax;
                     elseif(strcmp(key,'s'))  
-                        disp('stop');
+                        %disp('stop');
                         vl = 0.0; vr = 0.0;
                     end;
                     robot.sendVelocity(vl,vr);
@@ -53,19 +54,19 @@ classdef robotKeypressDriver < handle
                     vr = 0.0;        
                     % slightly modified velocities for more intuitive control
                     if(strcmp(key, 'uparrow'))
-                        disp('up');
+                        %disp('up');
                         vl = Vmax; vr = Vmax;
                     elseif(strcmp(key,'downarrow'))
-                        disp('down');
+                        %disp('down');
                         vl = -Vmax; vr = -Vmax;
                     elseif(strcmp(key,'leftarrow'))
-                        disp('left');
+                        %disp('left');
                         vl = Vmax; vr = Vmax+dV;
                     elseif(strcmp(key,'rightarrow'))  
-                        disp('right');
+                        %disp('right');
                         vl = Vmax+dV; vr = Vmax;
                     elseif(strcmp(key,'s'))  
-                        disp('stop');
+                        %disp('stop');
                         vl = 0.0; vr = 0.0;
                     end;
                     robot.sendVelocity(vl,vr);

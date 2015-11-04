@@ -100,21 +100,18 @@ classdef lineMapLocalizer < handle
             ids = obj.throwOutliers(inPose,modelPts);
             modelPts(:,ids) = [];
             % use sensor offset coords
-            outPose = inPose; %pose(robotModel.senToWorld(inPose));
+            outPose = pose(inPose.poseVec);
             % initialize error
             errPlus0 = obj.errThresh + 1;
             
             % compute Jacobian up to maxIters
             i = 0;
-            while (i < maxIters) %&& (errPlus0 > obj.errThresh) 
+            while (i < maxIters) && (errPlus0 > obj.errThresh) 
                 i = i + 1;
                 [errPlus0,J] = obj.getJacobian(outPose,modelPts);
-                dPose = (-J)*.01;
+                dPose = (-J)*obj.gain;
                 outPose.poseVec = outPose.poseVec + dPose;
             end
-            
-            %adjust robot sensor offset
-            %outPose = pose(robotModel.robToWorld(outPose));
             
             % check whether within error threshold
             if (errPlus0 < obj.errThresh) 
