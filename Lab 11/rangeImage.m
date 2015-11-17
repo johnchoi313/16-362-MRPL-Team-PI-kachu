@@ -2,13 +2,13 @@ classdef rangeImage < handle
     %rangeImage Stores a 1D range image and provides related services.
 
     properties(Constant)
-        maxUsefulRange = 1.0;
+        maxUsefulRange = .9;
         minUsefulRange = 0.05;
         maxRangeForTarget = 0.4;
         % Constants used to offset motion
-        sensorOffset = 0.23;
-        sensorThOffset = 0.06;
-        sideThOffset = 0.4;
+        sensorOffset = 0.23 %0.23;
+        sensorThOffset = -0.1 %0.06;
+        sideThOffset = 0.2; %0.4;
     end
 
     properties(Access = public)
@@ -52,7 +52,7 @@ classdef rangeImage < handle
             % check every range
             for i = 1:length(obj.rArray)
                 % if out of range, add index to list of indices to be removed
-                if (obj.rArray(i) > obj.maxUsefulRange) || (obj.rArray(i) < obj.minUsefulRange)
+                if (obj.rArray(i) > obj.maxUsefulRange) || (obj.rArray(i) < obj.minUsefulRange) || (obj.yArray(i) > .3) || (obj.yArray(i) < -.3)
                     remove(length(remove)+1) = i;
                 end
             end
@@ -60,7 +60,8 @@ classdef rangeImage < handle
             obj.rArray(remove) = [];
             obj.tArray(remove) = [];
             obj.xArray(remove) = [];
-            obj.yArray(remove) = [];        
+            obj.yArray(remove) = [];  
+            
             % update numpix
             obj.numPix = length(obj.rArray);
         end

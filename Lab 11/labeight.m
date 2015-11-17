@@ -15,8 +15,9 @@ rr = robotRanges(robot);
 
 %get ranges and plot their positions
 ri = rangeImage(rr.getRanges(2),1,true);
+
 % find line (pallet width = .125; half of this is roughly .7)
-[x y th] = ri.bestLineCandidate(.12,1);
+[x y th] = ri.bestLineCandidate(.12,0);
 % goto line
 tf.followTrajectory(x,y,th, 1.0);
 % plot data
@@ -26,11 +27,11 @@ tf.plotData();
 %% -------------------- %%
 
 %get ranges and plot their positions
-ri = rangeImage(rr.getRanges(2),1,true);
+%ri = rangeImage(rr.getRanges(2),1,true);
 % find line (pallet width = 12.5; half of this is roughly 7)
-[x y th] = ri.bestLineCandidate(.12,0);
+%[x y th] = ri.bestLineCandidate(.12,0);
 % goto line
-tf.followTrajectory(x,y,th, 1.0);
+%tf.followTrajectory(x,y,th, 1.0);
 
 %% -------------------- %%
 
