@@ -1,0 +1,56 @@
+        %Input Laser points, out puts array of continous line segments
+        function [startIndices] = getLineSegments(obj)
+            startIndices = [];
+            thArray = obj.tArray
+            
+            i = 1;
+            %find first empty scan
+            for index = 1:length(thArray)
+                
+                index_plus1 = index + 1;
+                if(index_plus1 > length(thArray))
+                    index_plus1 = 1
+                end
+                
+                %get change in theta
+                dth = round(rad2deg(thArray(index)-thArray(index_plus1)))
+                
+                if(abs(dth) > 1) %found start of new line at index+1
+                   startIndices(i) = index_plus1; 
+                   i = i + 1;
+                end
+            end 
+        end
+        
+        
+        
+        function [] = name(obj, startIndices)
+            
+            for i = 1:length(startIndices)
+                
+                i_plus1 = i+1;
+                if(i_plus1 > length(startIndices))
+                    i_plus1 = 1;
+                end
+                
+                startIndex = startIndices[i];
+                endIndex = startIndices[i+1] - 1;
+                
+                X = xArray(startIndex,endIndex);
+                Y = yArray(startIndex,endIndex); 
+                [slope midX midY] = bestFit(X, Y);
+                %Update Line data
+                lineData(i,:) = [slope midX midY];
+            end
+            threshold = 0.5
+            for i = 1:length(lineData)
+                slope1 = lineData(i,1)
+                for j = i:length(lineData)
+                    slope2 = lineData(j,1)
+                    slopeAverage = (slope1+slope2)/2
+                    dy = lineData(j,3) - lineData(i,3)
+                    dx = lineData(j,2) - lineData(i,2)
+                    slope = dy/dx
+                    if(slope > slopeAverage - threshold && slope < slopeAverage + threshold)
+
+        end
