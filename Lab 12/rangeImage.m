@@ -52,7 +52,8 @@ classdef rangeImage < handle
             % check every range
             for i = 1:length(obj.rArray)
                 % if out of range, add index to list of indices to be removed
-                if (obj.rArray(i) > obj.maxUsefulRange) || (obj.rArray(i) < obj.minUsefulRange) || (obj.yArray(i) > .3) || (obj.yArray(i) < -.3)
+                if (obj.rArray(i) > obj.maxUsefulRange) || (obj.rArray(i) < obj.minUsefulRange) ...
+                    (obj.yArray(i) > .3) || (obj.yArray(i) < -.3) || (obj.xArray(i) < 0)
                     remove(length(remove)+1) = i;
                 end
             end

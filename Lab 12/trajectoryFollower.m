@@ -73,22 +73,32 @@ classdef trajectoryFollower < handle
             obj.ky = 0.07;
         end
         
-        % backup and rotate
-        function backupRotate(obj)
-            % move back 15 cm
+        % backup
+        function backup(obj,cm)
             tic;
             t = 0;
-            while(t < 5.0)
+            tf = (5.0/15.0)*cm;
+            while(t < tf)
                 t = toc;
                 obj.robot.sendVelocity(-0.03,-0.03);
             end
-            % rotate 180 degrees         
+            obj.robot.sendVelocity(0,0);
+        end
+        
+        % rotate 
+        function rotate(obj,angle)
+            % rotate 180 degrees
             tic;
             t = 0;
-            while(t < 12.65)
+            tf = (12.65/180.0)*abs(angle);
+            while(t < tf)
                 t = toc;
-                obj.robot.sendVelocity(0.03,-0.03);
-            end
+                if(angle > 0)
+                    obj.robot.sendVelocity(0.03,-0.03);
+                else
+                    obj.robot.sendVelocity(-0.03,0.03);
+                end
+             end
             obj.robot.sendVelocity(0,0);
         end
         
