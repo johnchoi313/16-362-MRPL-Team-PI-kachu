@@ -5,70 +5,90 @@ rkd = robotKeypressDriver(figure(1));
 % initialize the range finder
 rr = robotRanges(robot);
 
-% initialize the map
-xO = 9*0.0254;
-yO = 15*.0254;
-thO = pi/2;
+%% Robot Pose
+x0 = 9*0.0254;
+y0 = 15*.0254;
+th0 = pi/2;
 
-p0 = [0 - xO ; 0 - yO];
-p1 = [0 - xO ; 1.2 - yO];
-p2 = [1.2 - xO ; 0 - yO];
-lines_p1 = [p0 p1];
-lines_p2 = [p2 p0];
-wallsX = [0, 1.2, 0, 0] - xO;
-wallsY = [0, 0, 0, 1.2] - yO;
+%% Initialize the map in world cordinates
+mapLen = 1.3; %Meters
+
+%Define Points
+p0 = [0; mapLen];    
+p1 = [0; 0];      
+p2 = [mapLen; 0];     
+p3 = [mapLen; mapLen];    
+
+%Define the three lines
+line1 = [p0 p1];
+line2 = [p1 p2];
+line3 = [p2 p3];
+
+wallsX = [line1(1,:) line2(1,:) line3(1,:)]; 
+wallsY = [line1(2,:) line2(2,:) line3(2,:)]; 
 
 % initialize the line map localizer
-lml = lineMapLocalizer(lines_p1,lines_p2, 0.01,0.0015,0.0005);
+lml = lineMapLocalizer(line1,line2, 0.01,0.0015,0.0005);
+% lineMapLocalizer(lines_p1,lines_p2,gain,errThresh,gradThresh)
 
-% initialize the pose
-robotPose = pose(0,0,0);
+%% Initialize the robot pose in the world frame
+robotPose = pose(x0, y0, th0);
+%NOTE robot pose is actual the senor pose 
 
-% loop the control infinitely
-while(true)
-    
-    % Add a short pause
-    pause(0.1);
-    
+while(1)
     % Get the keypress and move the robot
     robotKeypressDriver.drive(robot,1);
-
-    % Get one laser scan
-    ranges = rr.getRanges(1);
-    % Update the information and plot (use only every 5th point)
-    ri = rangeImage(ranges,20,true);  
-    % convert ranges to xy coordinates
+    
+    % Get Ranges
+    ranges = rr.getRanges(0);
+    % Conver Pt to X, Y, TH
+    ri = rangeImage(ranges, 10, true);
+    
+    %DO NOT USE, THIS WILL CONVERT SENSOR POSE TO ROBOT POSE
+    % CONVERSION MATRIX, SENSOR=>WORLD FRAME
+    % Finds the sensor pose in world given the robot pose in the world.
+    %senToWorld = robotModel.senToWorld(robotPose);
+    % Get Sensor Pose in Word Frame
+    %sensorPoseVec = senToWorld * robotPose.getPoseVec;
+    %sensorPose = pose(sensorPoseVec(1), sensorPoseVec(2), sensorPoseVec(3));
+    
+    % CONVERSION MATRIX, ROBOT=>WORLD FRAME
+    %(world)Sensor=>Robot(world) 
+    %Finds the robot pose in world given the sensor pose in the world.
+    robotToWorld = robotModel.robToWorld(robotPose);
+    
+    %Convert ranges to xy coordinates
     modelPts = [ri.xArray ; ri.yArray; ones(1,length(ri.xArray))];        
-    % convert lidar to frame
-    modelPts = robotPose.bToA()*modelPts;
+    %Convert lidar scan to world frame ROBOT=>WORLD
+    worldPts = robotToWorld*modelPts;
+    worldX = worldpts(1,:);
+    worldY = worldpts(2,:);
+    
+    % Get Robot Body in world frame
+    body = robotToWorld*robotModel.bodyGraph();
     
     % Update pose
-    [success, robotPose] = lml.refinePose(robotPose, modelPts, 20);
+    [success, robotPose] = lml.refinePose(robotPose, modelPts, 40);
     
-    %Render pose is slightly offset from measured pose
-    renderPose = pose(robotPose.poseVec);
-    % apply rendering offsets
-    renderPose.poseVec(3) = renderPose.poseVec(3)*2; % adjust for sensor offset
-    renderPose.poseVec(1) = renderPose.poseVec(1)*2 + .12*cos(renderPose.poseVec(3)); 
-    renderPose.poseVec(2) = renderPose.poseVec(2)*2 + .12*sin(renderPose.poseVec(3)); 
-    % print out render pose info
-    x = renderPose.poseVec(1)
-    y = renderPose.poseVec(2)
-    th = renderPose.poseVec(3)
-    % show robot body
-    body = robotModel.bodyGraph();
-    body = renderPose.bToA()*body;
+    %World View for plotting
+    worldLidarPts = robotPose.bToA()*modelPts;
+        
+    %Print Robot Pose
+    %robotPose.getPoseVec
     
-    % adjust modelPts with updated robotPose
-    modelPts = robotPose.bToA()*modelPts;
-    % world view
-    worldLidarPts = modelPts;
+    robPoseVec = robotPose.getPoseVec;
     
-    % plot everything
+    % Plot Everything
     figure(1);
-    plot(wallsX,wallsY, 'b', body(1,:), body(2,:), 'g*',worldLidarPts(1,:),worldLidarPts(2,:), 'r*');
+    plot(wallsX, wallsY, 'b', ...
+        body(1,:), body(2,:), 'g*', ...
+        worldLidarPts(1,:), worldLidarPts(2,:), 'b*', ...
+        robPoseVec(1), robPoseVec(2), 'r*');
+    %worldX, worldY, 'r*');% ...
+        %ri.xArray, ri.yArray, 'y*');
     title('X/Y Ranges'),...
     axis([-.5 1.5 -.5 1.5]),...
     xlabel('X (meters)'),... 
-    ylabel('Y (meters)');    
+    ylabel('Y (meters)');
+    
 end
